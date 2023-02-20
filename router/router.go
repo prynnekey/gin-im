@@ -22,6 +22,9 @@ func Init() *gin.Engine {
 
 		// 发送、接收消息
 		auth.GET("/websocket/message", service.WebsocketMessage())
+
+		// 获取聊天记录
+		auth.GET("/chat/history", service.ChatHistory())
 	}
 
 	return r
