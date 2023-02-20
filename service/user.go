@@ -36,7 +36,7 @@ func Login() gin.HandlerFunc {
 
 		// 登录成功
 		// 生成token
-		token, err := common.GenerateToken(ub.Identidy, ub.Username)
+		token, err := common.GenerateToken(ub.Identity, ub.Username)
 		if err != nil {
 			ctx.JSON(http.StatusOK, response.Fail(nil, "生成token时失败"+err.Error()))
 			return
@@ -93,7 +93,7 @@ func Register() gin.HandlerFunc {
 
 		// 保存数据
 		ub := models.UserBasic{
-			Identidy:  common.GenerateUUID(),
+			Identity:  common.GenerateUUID(),
 			Username:  username,
 			Password:  password,
 			Create_at: time.Now().Unix(),
@@ -109,12 +109,38 @@ func Register() gin.HandlerFunc {
 		// 注册成功
 
 		// 生成token
-		token, err := common.GenerateToken(ub.Identidy, ub.Username)
+		token, err := common.GenerateToken(ub.Identity, ub.Username)
 		if err != nil {
 			ctx.JSON(http.StatusOK, response.Fail(nil, "生成token时失败"+err.Error()))
 			return
 		}
 
 		ctx.JSON(http.StatusOK, response.Success(gin.H{"token": token}, "注册成功"))
+	}
+}
+
+// 获取用户详情
+func UserDetail() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// 获取用户claim
+		value, exists := ctx.Get("user_claim")
+		if !exists {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "获取用户信息失败"))
+			return
+		}
+
+		// 解析claim,通过类型断言
+		uc := value.(*common.UserClaim)
+
+		// 查询数据
+		ub, err := models.GetUserBasicByIdentity(uc.Identity)
+		if err != nil {
+			log.Printf("查询用户失败: %v", err)
+			ctx.JSON(http.StatusOK, response.Fail(nil, "发生错误"+err.Error()))
+			return
+		}
+
+		// 返回
+		ctx.JSON(http.StatusOK, response.Success(gin.H{"user": ub}, "获取用户信息成功"))
 	}
 }
