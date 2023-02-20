@@ -10,6 +10,8 @@ func Init() *gin.Engine {
 
 	// 用户登录
 	r.POST("/login", service.Login())
+	// 用户注册
+	r.POST("/register", service.Register())
 
 	return r
 }
