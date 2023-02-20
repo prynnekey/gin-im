@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/gin-gonic/gin v1.8.2
 	github.com/golang-jwt/jwt/v4 v4.4.3
+	github.com/gorilla/websocket v1.5.0
 	github.com/satori/go.uuid v1.2.0
 	go.mongodb.org/mongo-driver v1.11.2
 )
