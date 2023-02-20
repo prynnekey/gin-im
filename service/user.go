@@ -93,11 +93,11 @@ func Register() gin.HandlerFunc {
 
 		// 保存数据
 		ub := models.UserBasic{
-			Identity:  common.GenerateUUID(),
-			Username:  username,
-			Password:  password,
-			Create_at: time.Now().Unix(),
-			Update_at: time.Now().Unix(),
+			Identity: common.GenerateUUID(),
+			Username: username,
+			Password: password,
+			CreateAt: time.Now().Unix(),
+			UpdateAt: time.Now().Unix(),
 		}
 		err = models.InsertOneUserBasic(&ub)
 		if err != nil {

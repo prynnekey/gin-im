@@ -7,15 +7,15 @@ import (
 )
 
 type UserBasic struct {
-	Identity  string `json:"identity"`
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	Nickname  string `json:"nickname"`
-	Gender    int    `json:"gender"`
-	Email     string `json:"email"`
-	Avatar    string `json:"avatar"`
-	Create_at int64  `json:"create_at"`
-	Update_at int64  `json:"update_at"`
+	Identity string `json:"identity"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Nickname string `json:"nickname"`
+	Gender   int    `json:"gender"`
+	Email    string `json:"email"`
+	Avatar   string `json:"avatar"`
+	CreateAt int64  `json:"create_at"`
+	UpdateAt int64  `json:"update_at"`
 }
 
 func (UserBasic) CollectionName() string {
