@@ -7,15 +7,15 @@ import (
 )
 
 type UserBasic struct {
-	Identidy  string `json:"identidy"`
+	Identity  string `json:"identity"`
 	Username  string `json:"username"`
 	Password  string `json:"password"`
 	Nickname  string `json:"nickname"`
 	Gender    int    `json:"gender"`
 	Email     string `json:"email"`
-	Avator    string `json:"avator"`
-	Create_at int64  `json:"create___at"`
-	Update_at int64  `json:"update___at"`
+	Avatar    string `json:"avatar"`
+	Create_at int64  `json:"create_at"`
+	Update_at int64  `json:"update_at"`
 }
 
 func (UserBasic) CollectionName() string {
@@ -47,4 +47,15 @@ func InsertOneUserBasic(ub *UserBasic) error {
 		InsertOne(context.Background(), ub)
 
 	return err
+}
+
+// 根据Identity查询用户数据
+func GetUserBasicByIdentity(identity string) (*UserBasic, error) {
+	ub := &UserBasic{}
+	// 查询数据
+	err := Mongo.Collection(UserBasic{}.CollectionName()).
+		FindOne(context.Background(), bson.D{{Key: "identity", Value: identity}}).
+		Decode(ub)
+
+	return ub, err
 }
