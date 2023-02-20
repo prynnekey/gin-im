@@ -20,6 +20,9 @@ func Init() *gin.Engine {
 		// 获取用户详情
 		auth.GET("/user/detail", service.UserDetail())
 
+		// 查询指定用户的个人信息
+		auth.GET("/user/info/:username", service.UserInfo())
+
 		// 发送、接收消息
 		auth.GET("/websocket/message", service.WebsocketMessage())
 
