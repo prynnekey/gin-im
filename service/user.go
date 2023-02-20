@@ -144,3 +144,27 @@ func UserDetail() gin.HandlerFunc {
 		ctx.JSON(http.StatusOK, response.Success(gin.H{"user": ub}, "获取用户信息成功"))
 	}
 }
+
+func UserInfo() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// 获取参数
+		username := ctx.Param("username")
+
+		// 参数校验
+		if username == "" {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "要查询的用户名能为空"))
+			return
+		}
+
+		// 查询数据
+		ui, err := models.GetUserInfoByUsername(username)
+		if err != nil {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "用户不存在"))
+			return
+		}
+
+		// TODO:判断是否是好友
+
+		ctx.JSON(http.StatusOK, response.Success(gin.H{"user": ui}, "获取用户信息成功"))
+	}
+}
