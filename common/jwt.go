@@ -6,7 +6,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-type UserClaims struct {
+type UserClaim struct {
 	Identity string `json:"identity"` // 用户的唯一标识
 	Username string `json:"username"` // 用户名
 	jwt.StandardClaims
@@ -16,7 +16,7 @@ var tokenKey = []byte("im")
 
 // 生成token
 func GenerateToken(identity, username string) (string, error) {
-	userClaim := UserClaims{
+	userClaim := UserClaim{
 		Identity:       identity,
 		Username:       username,
 		StandardClaims: jwt.StandardClaims{},
@@ -31,8 +31,8 @@ func GenerateToken(identity, username string) (string, error) {
 }
 
 // 解析token
-func ParseToken(tokenString string) (*UserClaims, error) {
-	userClaim := UserClaims{}
+func ParseToken(tokenString string) (*UserClaim, error) {
+	userClaim := UserClaim{}
 	token, err := jwt.ParseWithClaims(tokenString, &userClaim, func(t *jwt.Token) (interface{}, error) {
 		return tokenKey, nil
 	})
