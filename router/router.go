@@ -23,6 +23,9 @@ func Init() *gin.Engine {
 		// 查询指定用户的个人信息
 		auth.GET("/user/info/:username", service.UserInfo())
 
+		// 添加好友
+		auth.POST("/user/add/:username", service.AddUser())
+
 		// 发送、接收消息
 		auth.GET("/websocket/message", service.WebsocketMessage())
 
