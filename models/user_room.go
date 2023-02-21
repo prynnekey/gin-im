@@ -7,12 +7,11 @@ import (
 )
 
 type UserRoom struct {
-	UserIdentity    string `bson:"user_identity"`
-	RoomIdentity    string `bson:"room_identity"`
-	RoomType        int    `bson:"room_type"` // 房间类型 【1-私聊,2-群聊】
-	MessageIdentity string `bson:"message_identity"`
-	CreateAt        int64  `bson:"create_at"`
-	UpdateAt        int64  `bson:"update_at"`
+	UserIdentity string `bson:"user_identity"`
+	RoomIdentity string `bson:"room_identity"`
+	RoomType     int    `bson:"room_type"` // 房间类型 【1-私聊,2-群聊】
+	CreateAt     int64  `bson:"create_at"`
+	UpdateAt     int64  `bson:"update_at"`
 }
 
 func (UserRoom) CollectionName() string {
@@ -71,4 +70,11 @@ func JudgeUserIsFriend(userIdentity, friendUserIdentity string) (bool, error) {
 	}
 
 	return count > 0, nil
+}
+
+func InsertOneUserRoom(userRoom *UserRoom) error {
+	_, err := Mongo.Collection(UserRoom{}.CollectionName()).
+		InsertOne(context.Background(), userRoom)
+
+	return err
 }
