@@ -271,3 +271,51 @@ func UserAdd() gin.HandlerFunc {
 		ctx.JSON(http.StatusOK, response.Success(nil, "添加好友成功"))
 	}
 }
+
+// 删除好友
+func UserDelete() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// 获取参数
+		username := ctx.Param("username")
+
+		// 参数校验
+		if username == "" {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "要查询的用户名能为空"))
+			return
+		}
+
+		// 删除UserRoom
+		userClaim, exists := ctx.Get("user_claim")
+		if !exists {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "获取用户信息失败"))
+			return
+		}
+
+		friend, err := models.GetUserBasicByUsername(username)
+		if err != nil {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "要删除的用户不存在"))
+			return
+		}
+
+		// 1. 找到自己和要删除用户共同的roomIdentity
+		roomIdentity, err := models.GetRoomIdentityByUserIdentities(userClaim.(*common.UserClaim).Identity, friend.Identity)
+		if err != nil || roomIdentity == "" {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "不是好友，无需删除"))
+			return
+		}
+
+		// 2. 根据roomIdentity删除UserRoom
+		if err2 := models.DeleteUserRoomByRoomIdentity(roomIdentity); err2 != nil {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "删除好友时发生错误,请重试"+err2.Error()))
+			return
+		}
+
+		// 删除RoomBasic
+		if err3 := models.DeleteRoomBasicByRoomIdentity(roomIdentity); err3 != nil {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "删除好友时发生错误,请重试"+err3.Error()))
+			return
+		}
+
+		ctx.JSON(http.StatusOK, response.Success(nil, "删除好友成功"))
+	}
+}
