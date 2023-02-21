@@ -163,7 +163,21 @@ func UserInfo() gin.HandlerFunc {
 			return
 		}
 
-		// TODO:判断是否是好友
+		userClaim, exists := ctx.Get("user_claim")
+		if !exists {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "获取用户信息失败"))
+			return
+		}
+
+		// 判断是否是好友关系
+		isFirend, err := models.JudgeUserIsFriend(userClaim.(*common.UserClaim).Identity, ui.Identity)
+		if err != nil {
+			log.Printf("查询用户失败: %v", err)
+			ctx.JSON(http.StatusOK, response.Fail(nil, "获取用户信息失败"))
+			return
+		}
+
+		ui.IsFriend = isFirend
 
 		ctx.JSON(http.StatusOK, response.Success(gin.H{"user": ui}, "获取用户信息成功"))
 	}
