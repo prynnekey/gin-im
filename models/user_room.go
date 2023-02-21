@@ -78,3 +78,48 @@ func InsertOneUserRoom(userRoom *UserRoom) error {
 
 	return err
 }
+
+// 根据自己id和好友id获取房间id
+func GetRoomIdentityByUserIdentities(userIdentity, friendUserIdentity string) (string, error) {
+	// 如果他们属于同一个房间且房间类型为私聊，则为好友
+	cursor, err := Mongo.Collection(UserRoom{}.CollectionName()).
+		Find(context.Background(), bson.D{{Key: "user_identity", Value: userIdentity}, {Key: "room_type", Value: 1}})
+	if err != nil {
+		return "", err
+	}
+
+	// 获取用户房间集合
+	roomIdentities := make([]string, 0)
+	for cursor.Next(context.Background()) {
+		userRoom := &UserRoom{}
+		if err = cursor.Decode(userRoom); err != nil {
+			return "", err
+		}
+		roomIdentities = append(roomIdentities, userRoom.RoomIdentity)
+	}
+
+	ur := &UserRoom{}
+	err = Mongo.Collection(UserRoom{}.CollectionName()).
+		FindOne(context.Background(), bson.D{
+			{Key: "user_identity", Value: friendUserIdentity},
+			{Key: "room_type", Value: 1},
+			{Key: "room_identity", Value: bson.D{{Key: "$in", Value: roomIdentities}}},
+		}).Decode(ur)
+
+	if err != nil {
+		return "", err
+	}
+
+	return ur.RoomIdentity, nil
+}
+
+// 根据房间id删除房间
+func DeleteUserRoomByRoomIdentity(roomIdentity string) error {
+	_, err := Mongo.Collection(UserRoom{}.CollectionName()).
+		DeleteMany(context.Background(), bson.D{
+			{Key: "room_identity", Value: roomIdentity},
+			{Key: "room_type", Value: 1},
+		})
+
+	return err
+}
