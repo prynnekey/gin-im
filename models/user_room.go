@@ -9,6 +9,7 @@ import (
 type UserRoom struct {
 	UserIdentity    string `bson:"user_identity"`
 	RoomIdentity    string `bson:"room_identity"`
+	RoomType        int    `bson:"room_type"` // 房间类型 【1-私聊,2-群聊】
 	MessageIdentity string `bson:"message_identity"`
 	CreateAt        int64  `bson:"create_at"`
 	UpdateAt        int64  `bson:"update_at"`
@@ -39,4 +40,35 @@ func GetUserRoomByRoomIdentity(roomIdentity string) ([]*UserRoom, error) {
 		return userRooms, err
 	}
 	return userRooms, nil
+}
+
+// 判断用户是否是好友
+func JudgeUserIsFriend(userIdentity, friendUserIdentity string) (bool, error) {
+	// 如果他们属于同一个房间且房间类型为私聊，则为好友
+	cursor, err := Mongo.Collection(UserRoom{}.CollectionName()).
+		Find(context.Background(), bson.D{{Key: "user_identity", Value: userIdentity}, {Key: "room_type", Value: 1}})
+	if err != nil {
+		return false, err
+	}
+
+	// 获取用户房间集合
+	roomIdentities := make([]string, 0)
+	for cursor.Next(context.Background()) {
+		userRoom := &UserRoom{}
+		if err = cursor.Decode(userRoom); err != nil {
+			return false, err
+		}
+		roomIdentities = append(roomIdentities, userRoom.RoomIdentity)
+	}
+
+	count, err := Mongo.Collection(UserRoom{}.CollectionName()).
+		CountDocuments(context.Background(),
+			bson.D{
+				{Key: "user_identity", Value: friendUserIdentity},
+				{Key: "room_identity", Value: bson.D{{Key: "$in", Value: roomIdentities}}}})
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
 }
