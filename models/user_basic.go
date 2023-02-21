@@ -19,6 +19,7 @@ type UserBasic struct {
 }
 
 type UserInfo struct {
+	Identity string `bson:"identity"`
 	Username string `bson:"username"`
 	Nickname string `bson:"nickname"`
 	Gender   int    `bson:"gender"`
