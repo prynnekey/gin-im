@@ -42,11 +42,24 @@ func GetUserBasicByUsernameAndPassword(username, password string) (*UserBasic, e
 	return ub, err
 }
 
-// 通过用户名获取用户信息
-func GetUserBasicByUsername(username string) (count int64, err error) {
+// 通过用户名获取用户的个数
+//
+// 保证用户名的唯一
+func GetUserBasicCountByUsername(username string) (count int64, err error) {
 	// 查询数据
 	return Mongo.Collection(UserBasic{}.CollectionName()).
 		CountDocuments(context.Background(), bson.D{{Key: "username", Value: username}})
+}
+
+// 通过用户名获取用户信息
+func GetUserBasicByUsername(username string) (*UserBasic, error) {
+	ub := &UserBasic{}
+	// 查询数据
+	err := Mongo.Collection(UserBasic{}.CollectionName()).
+		FindOne(context.Background(), bson.D{{Key: "username", Value: username}}).
+		Decode(ub)
+
+	return ub, err
 }
 
 // 将输入插入到MongoDB
