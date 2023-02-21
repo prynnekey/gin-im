@@ -76,7 +76,7 @@ func Register() gin.HandlerFunc {
 		}
 
 		// 判断用户名是否存在
-		count, err := models.GetUserBasicByUsername(username)
+		count, err := models.GetUserBasicCountByUsername(username)
 		if err != nil {
 			log.Printf("查询用户失败: %v", err)
 			ctx.JSON(http.StatusOK, response.Fail(nil, "发生错误"+err.Error()))
@@ -180,5 +180,94 @@ func UserInfo() gin.HandlerFunc {
 		ui.IsFriend = isFirend
 
 		ctx.JSON(http.StatusOK, response.Success(gin.H{"user": ui}, "获取用户信息成功"))
+	}
+}
+
+// 添加好友
+//
+// 无需对方同意即可添加好友
+func AddUser() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// 获取参数
+		username := ctx.Param("username")
+
+		// 参数校验
+		if username == "" {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "用户名不能为空"))
+			return
+		}
+
+		// 判断是否为好友
+		ub, err := models.GetUserBasicByUsername(username)
+		if err != nil {
+			log.Printf("数据查询一场 err: %v\n", err)
+			ctx.JSON(http.StatusOK, response.Fail(nil, "数据查询异常"))
+			return
+		}
+
+		userClaim, exists := ctx.Get("user_claim")
+		if !exists {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "获取用户信息失败"))
+			return
+		}
+
+		isFirend, err := models.JudgeUserIsFriend(userClaim.(*common.UserClaim).Identity, ub.Identity)
+		if err != nil {
+			log.Printf("查询用户失败: %v", err)
+			ctx.JSON(http.StatusOK, response.Fail(nil, "获取用户信息失败"))
+			return
+		}
+
+		if isFirend {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "已经是好友了，无需添加"))
+			return
+		}
+
+		// 添加好友
+
+		// 1. 插入RoomBasic
+		rb := models.RoomBasic{
+			Identity:     common.GenerateUUID(),
+			UserIdentity: userClaim.(*common.UserClaim).Identity,
+			CreateAt:     time.Now().Unix(),
+			UpdateAt:     time.Now().Unix(),
+		}
+
+		if err2 := models.InsertOneRoomBasic(&rb); err2 != nil {
+			log.Printf("插入RoomBasic失败: %v", err2)
+			ctx.JSON(http.StatusOK, response.Fail(nil, "添加好友失败"))
+			return
+		}
+
+		// 2. 插入UserRoom
+		ur := models.UserRoom{
+			UserIdentity: userClaim.(*common.UserClaim).Identity,
+			RoomIdentity: rb.Identity,
+			RoomType:     1,
+			CreateAt:     time.Now().Unix(),
+			UpdateAt:     time.Now().Unix(),
+		}
+
+		if err = models.InsertOneUserRoom(&ur); err != nil {
+			log.Printf("插入UserRoom失败: %v", err)
+			ctx.JSON(http.StatusOK, response.Fail(nil, "添加好友失败"))
+			return
+		}
+
+		ur = models.UserRoom{
+			UserIdentity: ub.Identity,
+			RoomIdentity: rb.Identity,
+			RoomType:     1,
+			CreateAt:     time.Now().Unix(),
+			UpdateAt:     time.Now().Unix(),
+		}
+
+		if err = models.InsertOneUserRoom(&ur); err != nil {
+			log.Printf("插入UserRoom失败: %v", err)
+			ctx.JSON(http.StatusOK, response.Fail(nil, "添加好友失败"))
+			return
+		}
+
+		ctx.JSON(http.StatusOK, response.Success(nil, "添加好友成功"))
 	}
 }
