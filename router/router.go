@@ -26,6 +26,9 @@ func Init() *gin.Engine {
 		// 添加好友
 		auth.POST("/user/add/:username", service.UserAdd())
 
+		// 删除好友
+		auth.DELETE("/user/delete/:username", service.UserDelete())
+
 		// 发送、接收消息
 		auth.GET("/websocket/message", service.WebsocketMessage())
 
