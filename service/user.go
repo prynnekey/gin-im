@@ -186,7 +186,7 @@ func UserInfo() gin.HandlerFunc {
 // 添加好友
 //
 // 无需对方同意即可添加好友
-func AddUser() gin.HandlerFunc {
+func UserAdd() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// 获取参数
 		username := ctx.Param("username")
