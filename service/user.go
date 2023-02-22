@@ -319,3 +319,12 @@ func UserDelete() gin.HandlerFunc {
 		ctx.JSON(http.StatusOK, response.Success(nil, "删除好友成功"))
 	}
 }
+
+// TODO:获取所有好友
+func UserAllFirend() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// 获取用户identity
+		// userIdentity := ctx.MustGet("user_claim").(*common.UserClaim).Identity
+
+	}
+}
