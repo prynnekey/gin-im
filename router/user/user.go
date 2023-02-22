@@ -21,5 +21,6 @@ func InitRouter(auth *gin.RouterGroup) {
 		user.DELETE("/delete/:username", service.UserDelete())
 
 		// 查询我的所有好友
+		user.GET("/all", service.UserAllFirend())
 	}
 }
