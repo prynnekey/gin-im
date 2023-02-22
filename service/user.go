@@ -328,3 +328,61 @@ func UserAllFirend() gin.HandlerFunc {
 
 	}
 }
+
+// 创建群聊
+func UserCreateChat() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var roomBasicSimple models.RoomBasicSimple
+		// 获取参数
+		err := ctx.ShouldBind(&roomBasicSimple)
+		if err != nil {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "参数格式不正确"))
+			return
+		}
+
+		userIdentity := ctx.MustGet("user_claim").(*common.UserClaim).Identity
+
+		// 生成房间号
+		roomNum := common.GenerateCode(6)
+
+		// 判断房间号是否存在
+		_, err2 := models.GetRoomBasicByRoomNumber(roomNum)
+		for i := 6; err2 == nil; i++ {
+			roomNum = common.GenerateCode(i)
+			_, err2 = models.GetRoomBasicByRoomNumber(roomNum)
+		}
+
+		// 初始化
+		roomBasic := models.RoomBasic{
+			Identity:     common.GenerateUUID(),
+			UserIdentity: userIdentity,
+			Number:       roomNum,
+			Name:         roomBasicSimple.Name,
+			Info:         roomBasicSimple.Info,
+			CreateAt:     time.Now().Unix(),
+			UpdateAt:     time.Now().Unix(),
+		}
+
+		// 插入RoomBasic
+		if err := models.InsertOneRoomBasic(&roomBasic); err != nil {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "创建群聊时发生错误."+err.Error()))
+			return
+		}
+
+		// 插入UserRoom
+		userRoom := models.UserRoom{
+			UserIdentity: userIdentity,
+			RoomIdentity: roomBasic.Identity,
+			RoomType:     2,
+			CreateAt:     time.Now().Unix(),
+			UpdateAt:     time.Now().Unix(),
+		}
+
+		if err := models.InsertOneUserRoom(&userRoom); err != nil {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "创建群聊时发生错误."+err.Error()))
+			return
+		}
+
+		ctx.JSON(http.StatusOK, response.Success(roomBasic, "创建成功"))
+	}
+}
