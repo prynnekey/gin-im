@@ -3,6 +3,9 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/prynnekey/gin-im/middleware"
+	"github.com/prynnekey/gin-im/router/chat"
+	"github.com/prynnekey/gin-im/router/group"
+	"github.com/prynnekey/gin-im/router/user"
 	"github.com/prynnekey/gin-im/service"
 )
 
@@ -17,23 +20,14 @@ func Init() *gin.Engine {
 	// 需要登录才能访问的接口
 	auth := r.Group("/api", middleware.AuthHandler())
 	{
-		// 获取用户详情
-		auth.GET("/user/detail", service.UserDetail())
+		// 用户路由
+		user.InitRouter(auth)
 
-		// 查询指定用户的个人信息
-		auth.GET("/user/info/:username", service.UserInfo())
+		// 群聊路由
+		group.InitRouter(auth)
 
-		// 添加好友
-		auth.POST("/user/add/:username", service.UserAdd())
-
-		// 删除好友
-		auth.DELETE("/user/delete/:username", service.UserDelete())
-
-		// 发送、接收消息
-		auth.GET("/websocket/message", service.WebsocketMessage())
-
-		// 获取聊天记录
-		auth.GET("/chat/history", service.ChatHistory())
+		// 聊天路由
+		chat.InitRouter(auth)
 	}
 
 	return r
