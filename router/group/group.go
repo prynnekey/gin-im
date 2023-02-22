@@ -12,6 +12,7 @@ func InitRouter(auth *gin.RouterGroup) {
 		group.POST("/create_chat", service.UserCreateChat())
 
 		// 查看已加入的群聊
+		group.GET("/joined", service.UserGetJoinedGroupChats())
 
 		// 邀请用户加入群聊
 
