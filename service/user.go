@@ -410,3 +410,46 @@ func UserGetJoinedGroupChats() gin.HandlerFunc {
 		ctx.JSON(http.StatusOK, response.Success(rbs, "获取成功"))
 	}
 }
+
+func UserInvateJoinedGroupChats() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// 获取参数
+		number := ctx.Param("number")
+
+		// 校验参数
+		if number == "" {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "请输入群号"))
+			return
+		}
+
+		// 判断是否已经加入群聊
+		rb, err := models.GetRoomBasicByRoomNumber(number)
+		if err != nil {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "群号不存在"))
+			return
+		}
+
+		identity := ctx.MustGet("user_claim").(*common.UserClaim).Identity
+		_, err = models.GetUserRoomByUserIdentityAndRoomIdentityWithRoomType(identity, rb.Identity, 2)
+		if err == nil {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "已加入群聊"))
+			return
+		}
+
+		// 加入群聊
+		userRoom := &models.UserRoom{
+			UserIdentity: identity,
+			RoomIdentity: rb.Identity,
+			RoomType:     2,
+			CreateAt:     time.Now().Unix(),
+			UpdateAt:     time.Now().Unix(),
+		}
+		err2 := models.InsertOneUserRoom(userRoom)
+		if err2 != nil {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "加入群聊失败"))
+			return
+		}
+
+		ctx.JSON(http.StatusOK, response.Success(nil, "加入群聊成功"))
+	}
+}
