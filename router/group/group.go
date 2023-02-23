@@ -11,10 +11,13 @@ func InitRouter(auth *gin.RouterGroup) {
 		// 创建群聊
 		group.POST("/create_chat", service.UserCreateChat())
 
+		// 查看我创建的群聊
+
 		// 查看已加入的群聊
 		group.GET("/joined", service.UserGetJoinedGroupChats())
 
-		// 邀请用户加入群聊
+		// 加入群聊
+		group.POST("/invite/:number", service.UserInvateJoinedGroupChats())
 
 		// 移除用户从群聊
 
@@ -25,6 +28,8 @@ func InitRouter(auth *gin.RouterGroup) {
 		// 将群管理员移交给他人
 
 		// 查看群中所有用户
+
+		// 获取群聊详细信息
 	}
 
 }
