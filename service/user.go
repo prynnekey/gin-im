@@ -411,6 +411,33 @@ func UserGetJoinedGroupChats() gin.HandlerFunc {
 	}
 }
 
+func UserGetCreateGroupChats() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		identity := ctx.MustGet("user_claim").(*common.UserClaim).Identity
+
+		ur, err := models.GetUserRoomByUserIdentity(identity, 2)
+		if err != nil {
+			log.Println(err)
+			ctx.JSON(http.StatusOK, response.Fail(nil, "获取群聊列表时发生错误."+err.Error()))
+			return
+		}
+
+		rbs := make([]*models.RoomBasic, 0)
+		for _, u := range ur {
+			rb, err := models.GetRoomBasicByRoomIdentityAndUserIdentity(u.RoomIdentity, identity)
+			if err != nil {
+				log.Println(err)
+				// ctx.JSON(http.StatusOK, response.Fail(nil, "获取群聊列表时发生错误."+err.Error()))
+				continue
+			}
+			rbs = append(rbs, rb)
+		}
+
+		ctx.JSON(http.StatusOK, response.Success(rbs, "获取成功"))
+
+	}
+}
+
 func UserInvateJoinedGroupChats() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// 获取参数
