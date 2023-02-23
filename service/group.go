@@ -162,3 +162,70 @@ func GroupInvateJoinedGroupChats() gin.HandlerFunc {
 		ctx.JSON(http.StatusOK, response.Success(nil, "加入群聊成功"))
 	}
 }
+
+// 查看群中所有用户
+func GroupGetAllUser() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// 获取参数
+		number := ctx.Param("number")
+
+		// 校验参数
+		if number == "" {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "请输入群号"))
+			return
+		}
+
+		// 判断群号是否存在
+		rb, err := models.GetRoomBasicByRoomNumber(number)
+		if err != nil {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "群号不存在"))
+			return
+		}
+
+		// 判断是否加入群聊
+		identity := ctx.MustGet("user_claim").(*common.UserClaim).Identity
+		ur, err := models.GetUserRoomByUserIdentityAndRoomIdentityWithRoomType(identity, rb.Identity, 2)
+		if err != nil {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "未加入群聊"))
+			return
+		}
+
+		// 查询所有用户
+		urs, err2 := models.GetUserRoomByRoomIdentity(ur.RoomIdentity)
+		if err2 != nil {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "查询失败"+err2.Error()))
+			return
+		}
+
+		users := make([]models.UserInfo, 0)
+		for _, ur := range urs {
+			userIdentity := ur.UserIdentity
+			user, err := models.GetUserBasicByIdentity(userIdentity)
+			if err != nil {
+				ctx.JSON(http.StatusOK, response.Fail(nil, "查询失败"+err.Error()))
+				return
+			}
+
+			// 判断是否是好友关系
+			isFirend, err := models.JudgeUserIsFriend(identity, userIdentity)
+			if err != nil {
+				log.Printf("查询用户失败: %v", err)
+				ctx.JSON(http.StatusOK, response.Fail(nil, "获取用户信息失败"))
+				return
+			}
+
+			userInfo := models.UserInfo{
+				Identity: user.Identity,
+				Username: user.Username,
+				Nickname: user.Nickname,
+				Gender:   user.Gender,
+				Avatar:   user.Avatar,
+				IsFriend: isFirend,
+			}
+
+			users = append(users, userInfo)
+		}
+
+		ctx.JSON(http.StatusOK, response.Success(gin.H{"users": users}, "查询成功"))
+	}
+}
