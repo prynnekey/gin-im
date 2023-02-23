@@ -29,7 +29,7 @@ func InitRouter(auth *gin.RouterGroup) {
 		// 将群管理员移交给他人
 
 		// 查看群中所有用户
-		// group.GET("/all_user", service.GroupGetAllUser())
+		group.GET("/all_user/:number", service.GroupGetAllUser())
 
 		// 获取群聊详细信息
 	}
