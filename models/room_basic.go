@@ -54,3 +54,14 @@ func GetRoomBasicByRoomIdentity(identities string) (*RoomBasic, error) {
 
 	return rb, err
 }
+
+func GetRoomBasicByRoomIdentityAndUserIdentity(roomIdentity, userIdentity string) (*RoomBasic, error) {
+	rb := &RoomBasic{}
+	err := Mongo.Collection(RoomBasic{}.CollectionName()).
+		FindOne(context.Background(), bson.D{
+			{Key: "identity", Value: roomIdentity},
+			{Key: "user_identity", Value: userIdentity},
+		}).Decode(rb)
+
+	return rb, err
+}
