@@ -27,6 +27,19 @@ func GetUserRoomByUserIdentityAndRoomIdentity(userIdentity, RoomIdentity string)
 	return userRoom, err
 }
 
+// 通过用户标识和房间标识和房间类型获取用户房间
+func GetUserRoomByUserIdentityAndRoomIdentityWithRoomType(userIdentity, RoomIdentity string, roomType int) (*UserRoom, error) {
+	userRoom := &UserRoom{}
+	err := Mongo.Collection(UserRoom{}.CollectionName()).
+		FindOne(context.Background(), bson.D{
+			{Key: "user_identity", Value: userIdentity},
+			{Key: "room_identity", Value: RoomIdentity},
+			{Key: "room_type", Value: roomType},
+		}).Decode(userRoom)
+
+	return userRoom, err
+}
+
 // 通过房间号获取用户房间
 func GetUserRoomByRoomIdentity(roomIdentity string) ([]*UserRoom, error) {
 	var userRooms []*UserRoom
