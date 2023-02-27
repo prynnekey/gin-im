@@ -65,3 +65,15 @@ func GetRoomBasicByRoomIdentityAndUserIdentity(roomIdentity, userIdentity string
 
 	return rb, err
 }
+
+// 判断是否是管理员
+func IsAdminForRoomBasicByRoomIdentityAndUserIdentity(roomIdentity, userIdentity string) (isAdmin bool) {
+	rb := &RoomBasic{}
+	err := Mongo.Collection(RoomBasic{}.CollectionName()).
+		FindOne(context.Background(), bson.D{
+			{Key: "identity", Value: roomIdentity},
+			{Key: "user_identity", Value: userIdentity},
+		}).Decode(rb)
+
+	return err == nil
+}
