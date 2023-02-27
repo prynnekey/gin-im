@@ -229,3 +229,60 @@ func GroupGetAllUser() gin.HandlerFunc {
 		ctx.JSON(http.StatusOK, response.Success(gin.H{"users": users}, "查询成功"))
 	}
 }
+
+func GroupDeleteUser() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// 获取参数
+		number := ctx.Query("number")
+		username := ctx.Query("username")
+
+		// 校验参数
+		if number == "" {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "请输入群号"))
+			return
+		}
+
+		if username == "" {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "请输入用户名"))
+			return
+		}
+
+		// 判断群号是否存在
+		rb, err := models.GetRoomBasicByRoomNumber(number)
+		if err != nil {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "群号不存在"))
+			return
+		}
+
+		identity := ctx.MustGet("user_claim").(*common.UserClaim).Identity
+
+		// 判断是否是管理员
+		if rb.UserIdentity != identity {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "不是管理员,无法操作"))
+			return
+		}
+
+		// 判断用户是否存在
+		ub, err := models.GetUserBasicByUsername(username)
+		if err != nil {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "用户不存在"))
+			return
+		}
+
+		// 判断是否已经加入群聊
+		ur, err := models.GetUserRoomByUserIdentityAndRoomIdentityWithRoomType(ub.Identity, rb.Identity, 2)
+		if err != nil {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "该用户未加入群聊"))
+			return
+		}
+
+		// 移出群聊
+		err2 := models.DeleteUserRoomByUserIdentityAndRoomIdentity(ub.Identity, ur.RoomIdentity)
+		if err2 != nil {
+			ctx.JSON(http.StatusOK, response.Fail(nil, "移除用户失败"))
+			return
+		}
+
+		ctx.JSON(http.StatusOK, response.Success(nil, "移除用户成功"))
+	}
+}
