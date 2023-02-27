@@ -21,6 +21,7 @@ func InitRouter(auth *gin.RouterGroup) {
 		group.POST("/invite/:number", service.GroupInvateJoinedGroupChats())
 
 		// 移除用户从群聊
+		group.DELETE("/user", service.GroupDeleteUser())
 
 		// 退出指定群聊
 
