@@ -137,6 +137,18 @@ func DeleteUserRoomByRoomIdentity(roomIdentity string) error {
 	return err
 }
 
+// 根据房间id删除房间
+func DeleteUserRoomByUserIdentityAndRoomIdentity(userIdentity, roomIdentity string) error {
+	_, err := Mongo.Collection(UserRoom{}.CollectionName()).
+		DeleteOne(context.Background(), bson.D{
+			{Key: "room_identity", Value: roomIdentity},
+			{Key: "user_identity", Value: userIdentity},
+			{Key: "room_type", Value: 2},
+		})
+
+	return err
+}
+
 // 通过用户id和房间类型获取用户房间
 func GetUserRoomByUserIdentity(userIdentity string, roomType int) ([]*UserRoom, error) {
 	cursor, err := Mongo.Collection(UserRoom{}.CollectionName()).
